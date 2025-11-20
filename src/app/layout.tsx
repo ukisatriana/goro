@@ -4,9 +4,9 @@ import { useEffect } from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/Layout/Header';
-import { Navigation } from '@/components/Layout/Navigation';
-import { Footer } from '@/components/Layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { Navigation } from '@/components/layout/Navigation';
+import { Footer } from '@/components/layout/Footer';
 import { registerServiceWorker } from './register-sw';
 
 const inter = Inter({ subsets: ['latin'] });
