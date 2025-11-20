@@ -16,7 +16,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="text-primary hover:underline font-medium"
             >
-              @ukisatriana
+              anggoro keren
             </a>
           </div>
 

@@ -5,7 +5,7 @@ import { Search, TrendingUp, AlertCircle, Loader2 } from 'lucide-react';
 import { StockCard } from '@/components/StockCard';
 import { Input } from '@/components/ui/Input';
 import { Card, CardBody } from '@/components/ui/Card';
-import { LQ45_STOCKS } from '@/constants/stocks';
+import { LQ45_STOCKS, ALL_STOCKS } from '@/constants/stocks';
 import { fetchStockData, fetchStockQuote } from '@/lib/stockApi';
 import { detectPatterns } from '@/lib/patternDetection';
 import { detectTrend } from '@/lib/trendAnalysis';
@@ -18,21 +18,31 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'buy' | 'sell'>('all');
+  const [sectorFilter, setSectorFilter] = useState<string>('all');
+  const [stocksToShow, setStocksToShow] = useState(20);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  // Get unique sectors
+  const sectors = ['all', ...Array.from(new Set(ALL_STOCKS.map(s => s.sector))).sort()];
 
   useEffect(() => {
     loadStocks();
-  }, []);
+  }, [stocksToShow]);
 
   useEffect(() => {
     filterStocks();
-  }, [searchQuery, stocks, filter]);
+  }, [searchQuery, stocks, filter, sectorFilter]);
+
+  const loadMoreStocks = () => {
+    setStocksToShow((prev) => Math.min(prev + 20, ALL_STOCKS.length));
+  };
 
   const loadStocks = async () => {
     setIsLoading(true);
     const stocksData: StockData[] = [];
 
-    // Load first 10 stocks for demo
-    const stocksToLoad = LQ45_STOCKS.slice(0, 10);
+    // Load stocks from ALL_STOCKS instead of just LQ45
+    const stocksToLoad = ALL_STOCKS.slice(0, stocksToShow);
 
     for (const stock of stocksToLoad) {
       try {
@@ -98,6 +108,11 @@ export default function Dashboard() {
       );
     }
 
+    // Filter by sector
+    if (sectorFilter !== 'all') {
+      filtered = filtered.filter((stock) => stock.sector === sectorFilter);
+    }
+
     // Filter by signal type
     if (filter !== 'all') {
       filtered = filtered.filter((stock) =>
@@ -113,15 +128,25 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Dashboard Monitoring Saham
+          Dashboard Monitoring Saham Indonesia
         </h1>
         <p className="text-gray-600">
-          Monitor pergerakan saham LQ45 dengan deteksi pola candlestick
+          Monitor pergerakan saham dari berbagai sektor di Indonesia dengan deteksi pola candlestick
         </p>
+        {!isLoading && stocks.length > 0 && (
+          <div className="mt-4 flex gap-4 text-sm">
+            <span className="text-gray-600">
+              <strong className="text-gray-900">{stocks.length}</strong> saham dimuat
+            </span>
+            <span className="text-gray-600">
+              <strong className="text-gray-900">{filteredStocks.length}</strong> saham ditampilkan
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
             <Input
@@ -131,7 +156,7 @@ export default function Dashboard() {
               className="w-full"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilter('all')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -166,6 +191,30 @@ export default function Dashboard() {
             </button>
           </div>
         </div>
+        
+        {/* Sector Filter */}
+        <div className="flex items-center gap-3">
+          <label className="text-sm font-medium text-gray-700">Sektor:</label>
+          <select
+            value={sectorFilter}
+            onChange={(e) => setSectorFilter(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white"
+          >
+            {sectors.map((sector) => (
+              <option key={sector} value={sector}>
+                {sector === 'all' ? 'Semua Sektor' : sector}
+              </option>
+            ))}
+          </select>
+          {sectorFilter !== 'all' && (
+            <button
+              onClick={() => setSectorFilter('all')}
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Reset
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Loading State */}
@@ -193,11 +242,33 @@ export default function Dashboard() {
 
       {/* Stocks Grid */}
       {!isLoading && filteredStocks.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStocks.map((stock) => (
-            <StockCard key={stock.symbol} stock={stock} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStocks.map((stock) => (
+              <StockCard key={stock.symbol} stock={stock} />
+            ))}
+          </div>
+          
+          {/* Load More Button */}
+          {stocksToShow < ALL_STOCKS.length && searchQuery === '' && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={loadMoreStocks}
+                disabled={isLoadingMore}
+                className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoadingMore ? (
+                  <>
+                    <Loader2 className="inline animate-spin mr-2" size={16} />
+                    Memuat...
+                  </>
+                ) : (
+                  `Muat Lebih Banyak (${stocksToShow} dari ${ALL_STOCKS.length})`
+                )}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Info Card */}
@@ -211,9 +282,10 @@ export default function Dashboard() {
                   Informasi Penting
                 </p>
                 <p>
-                  Data saham diambil dari Yahoo Finance. Signal buy/sell adalah hasil
-                  deteksi pola candlestick dan bukan merupakan rekomendasi investasi.
-                  Selalu lakukan riset mandiri sebelum berinvestasi.
+                  Data saham diambil dari Yahoo Finance. Aplikasi ini mencakup {ALL_STOCKS.length}+ saham 
+                  dari berbagai sektor di Indonesia termasuk LQ45, perbankan, properti, manufaktur, 
+                  teknologi, dan lainnya. Signal buy/sell adalah hasil deteksi pola candlestick dan 
+                  bukan merupakan rekomendasi investasi. Selalu lakukan riset mandiri sebelum berinvestasi.
                 </p>
               </div>
             </div>
