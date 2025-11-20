@@ -1,5 +1,5 @@
 import { Candle } from '@/types/stock';
-import { PatternType } from '@/types/signals';
+import { PatternType } from '@/types/signal';
 
 /**
  * Helper function to check if candle is bullish

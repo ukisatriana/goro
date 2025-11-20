@@ -10,7 +10,7 @@ import { fetchStockData, fetchStockQuote } from '@/lib/stockApi';
 import { detectPatterns } from '@/lib/patternDetection';
 import { detectTrend } from '@/lib/trendAnalysis';
 import { StockData, Signal } from '@/types/stock';
-import { PATTERN_NAMES } from '@/types/signals';
+import { PATTERN_NAMES } from '@/types/signal';
 
 export default function Dashboard() {
   const [stocks, setStocks] = useState<StockData[]>([]);

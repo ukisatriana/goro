@@ -21,7 +21,7 @@ interface YahooFinanceChartResult {
 }
 
 /**
- * Fetch stock data from Yahoo Finance
+ * Fetch stock data from Yahoo Finance via API proxy
  */
 export async function fetchStockData(
   symbol: string,
@@ -29,13 +29,20 @@ export async function fetchStockData(
   range: string = '2y'
 ): Promise<Candle[]> {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=${interval}&range=${range}`;
+    const url = `/api/stock/chart/${symbol}?interval=${interval}&range=${range}`;
 
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch data for ${symbol}: ${response.status}`);
+      return [];
+    }
+    
     const data = await response.json();
 
     if (!data.chart?.result?.[0]) {
-      throw new Error('No data available');
+      console.error(`No chart data available for ${symbol}`);
+      return [];
     }
 
     const result: YahooFinanceChartResult = data.chart.result[0];
@@ -59,17 +66,24 @@ export async function fetchStockData(
 }
 
 /**
- * Fetch current quote for a stock
+ * Fetch current quote for a stock via API proxy
  */
 export async function fetchStockQuote(symbol: string): Promise<YahooFinanceQuote | null> {
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
+    const url = `/api/stock/quote/${symbol}`;
 
     const response = await fetch(url);
+    
+    if (!response.ok) {
+      console.error(`Failed to fetch quote for ${symbol}: ${response.status}`);
+      return null;
+    }
+    
     const data = await response.json();
 
     if (!data.chart?.result?.[0]) {
-      throw new Error('No data available');
+      console.error(`No quote data available for ${symbol}`);
+      return null;
     }
 
     const result = data.chart.result[0];

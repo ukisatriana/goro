@@ -11,7 +11,7 @@ import { fetchStockData, fetchStockQuote } from '@/lib/stockApi';
 import { detectPatterns } from '@/lib/patternDetection';
 import { detectTrend } from '@/lib/trendAnalysis';
 import { StockData, Signal } from '@/types/stock';
-import { PATTERN_NAMES } from '@/types/signals';
+import { PATTERN_NAMES } from '@/types/signal';
 import { ALL_STOCKS } from '@/constants/stocks';
 import { formatCurrency, formatPercent, formatDate } from '@/lib/utils';
 import { cn } from '@/lib/utils';
